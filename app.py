@@ -221,13 +221,16 @@ def main():
                     st.error(f"⚠️ Expected 30 features, but got {len(X.columns)}. Please check your data.")
                     return
                 
-                # Reorder columns if needed
-                if list(X.columns) != expected_features:
-                    try:
-                        X = X[expected_features]
-                    except KeyError:
-                        st.error("⚠️ Feature names don't match expected features. Please ensure your data has the correct column names.")
+                # Reorder columns if needed - try to match by name
+                current_cols = list(X.columns)
+                if current_cols != expected_features:
+                    # Check if all expected features are present (in any order)
+                    missing_features = set(expected_features) - set(current_cols)
+                    if missing_features:
+                        st.error(f"⚠️ Missing features: {missing_features}")
                         return
+                    # Reorder to match expected order
+                    X = X[expected_features]
                 
                 # Scale features
                 if scaler:
