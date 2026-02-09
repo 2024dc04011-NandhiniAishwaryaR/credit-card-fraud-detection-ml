@@ -133,7 +133,7 @@ def main():
     # Sidebar
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Select Page:", 
-                            ["Home", "Model Evaluation", "Make Predictions", "About"])
+                            ["Home", "Model Evaluation", "About"])
     
     if page == "Home":
         st.header("Welcome to Credit Card Fraud Detection")
@@ -203,6 +203,21 @@ def main():
         
         # File uploader
         st.subheader("Upload Test Data")
+        
+        # Add test data download
+        st.markdown("**Don't have test data?** Download the sample test data:")
+        try:
+            with open('test_data.csv', 'rb') as f:
+                st.download_button(
+                    label="📥 Download Test Data (test_data.csv)",
+                    data=f,
+                    file_name="test_data.csv",
+                    mime="text/csv"
+                )
+        except:
+            st.info("ℹ️ Sample test data not available in this directory.")
+        
+        st.markdown("---")
         uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
         
         if uploaded_file is not None:
@@ -213,13 +228,17 @@ def main():
                 st.write(f"**Columns:** {list(df.columns)}")
                 
                 # Check if Class column exists
-                if 'Class' not in df.columns:
-                    st.error("⚠️ 'Class' column not found in the uploaded file.")
-                    return
+                has_class = 'Class' in df.columns
                 
-                # Separate features and target
-                X = df.drop('Class', axis=1)
-                y = df['Class']
+                if not has_class:
+                    st.warning("⚠️ 'Class' column not found. Showing prediction mode instead of evaluation.")
+                    # Predict mode
+                    X = df
+                    y = None
+                else:
+                    # Evaluation mode
+                    X = df.drop('Class', axis=1)
+                    y = df['Class']
                 
                 # Scale features
                 if scaler:
@@ -244,6 +263,10 @@ def main():
                 
                 # Evaluate models
                 if st.button("🚀 Evaluate Selected Models", key="eval_button"):
+                    if y is None:
+                        st.error("⚠️ Cannot evaluate without 'Class' column. Please upload data with Class labels.")
+                        return
+                    
                     results = {}
                     
                     # Create progress bar
@@ -323,89 +346,6 @@ def main():
             
             except Exception as e:
                 st.error(f"⚠️ Error processing file: {str(e)}")
-    
-    elif page == "Make Predictions":
-        st.header("🔮 Make Predictions")
-        
-        models, scaler = load_models()
-        
-        if not models:
-            st.warning("⚠️ Models not loaded.")
-            return
-        
-        st.markdown("""
-        Upload a test dataset to make predictions using the trained models.
-        The dataset should contain the same 30 features used for training.
-        """)
-        
-        uploaded_file = st.file_uploader("Choose a CSV file for predictions", type="csv", key="pred_upload")
-        
-        if uploaded_file is not None:
-            try:
-                df = pd.read_csv(uploaded_file)
-                
-                # Remove Class column if it exists
-                if 'Class' in df.columns:
-                    df = df.drop('Class', axis=1)
-                
-                st.write(f"**Data loaded:** {df.shape[0]} samples, {df.shape[1]} features")
-                
-                # Select model
-                selected_model = st.selectbox("Select Model:", list(models.keys()))
-                
-                if st.button("🚀 Make Predictions"):
-                    model = models[selected_model]
-                    
-                    # Scale data
-                    if scaler:
-                        X_scaled = scaler.transform(df)
-                    else:
-                        st.error("Scaler not loaded!")
-                        return
-                    
-                    # Make predictions
-                    y_pred = model.predict(X_scaled)
-                    
-                    # Get probabilities if available
-                    if hasattr(model, 'predict_proba'):
-                        y_pred_proba = model.predict_proba(X_scaled)
-                        predictions_df = pd.DataFrame({
-                            'Prediction': y_pred,
-                            'No Fraud Probability': y_pred_proba[:, 0],
-                            'Fraud Probability': y_pred_proba[:, 1]
-                        })
-                    else:
-                        predictions_df = pd.DataFrame({
-                            'Prediction': y_pred
-                        })
-                    
-                    st.success("✅ Predictions Complete!")
-                    st.dataframe(predictions_df, use_container_width=True)
-                    
-                    # Download predictions
-                    csv = predictions_df.to_csv(index=False)
-                    st.download_button(
-                        label="📥 Download Predictions",
-                        data=csv,
-                        file_name=f"predictions_{selected_model.replace(' ', '_')}.csv",
-                        mime="text/csv"
-                    )
-                    
-                    # Display statistics
-                    st.subheader("📊 Prediction Summary")
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        st.metric("Total Predictions", len(y_pred))
-                    
-                    with col2:
-                        st.metric("Fraud Cases (1)", int(y_pred.sum()))
-                    
-                    with col3:
-                        st.metric("Legitimate Cases (0)", int((y_pred == 0).sum()))
-            
-            except Exception as e:
-                st.error(f"⚠️ Error: {str(e)}")
     
     elif page == "About":
         st.header("ℹ️ About This Project")
@@ -493,10 +433,6 @@ def main():
         - **NumPy**: Numerical computing
         - **Matplotlib & Seaborn**: Visualization
         - **Streamlit**: Web application framework
-        
-        ### Author
-        M.Tech AIML / DSE Student
-        BITS Pilani, Hyderabad Campus
         """)
 
 if __name__ == "__main__":
