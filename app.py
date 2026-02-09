@@ -211,30 +211,18 @@ def main():
                 X = df.drop('Class', axis=1)
                 y = df['Class']
                 
-                # Ensure features are in correct order and have correct names
-                expected_features = ['Time', 'Amount', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10',
-                                   'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17', 'V18', 'V19', 'V20',
-                                   'V21', 'V22', 'V23', 'V24', 'V25', 'V26', 'V27', 'V28']
-                
-                # Check if we have the right features
+                # Check if we have the right number of features
                 if len(X.columns) != 30:
                     st.error(f"⚠️ Expected 30 features, but got {len(X.columns)}. Please check your data.")
                     return
                 
-                # Reorder columns if needed - try to match by name
-                current_cols = list(X.columns)
-                if current_cols != expected_features:
-                    # Check if all expected features are present (in any order)
-                    missing_features = set(expected_features) - set(current_cols)
-                    if missing_features:
-                        st.error(f"⚠️ Missing features: {missing_features}")
-                        return
-                    # Reorder to match expected order
-                    X = X[expected_features]
-                
-                # Scale features
+                # Scale features as-is (no reordering needed)
                 if scaler:
-                    X_scaled = scaler.transform(X)
+                    try:
+                        X_scaled = scaler.transform(X)
+                    except Exception as e:
+                        st.error(f"⚠️ Error scaling data: {str(e)}")
+                        return
                 else:
                     st.error("Scaler not loaded!")
                     return
