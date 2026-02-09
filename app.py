@@ -94,13 +94,6 @@ def calculate_metrics(y_true, y_pred, y_pred_proba=None):
     
     return metrics
 
-def display_metrics(metrics, col):
-    """Display metrics in a nice format"""
-    with col:
-        st.markdown("### Evaluation Metrics")
-        for metric_name, value in metrics.items():
-            st.metric(metric_name, f"{value:.4f}")
-
 def create_confusion_matrix_plot(y_true, y_pred):
     """Create confusion matrix visualization"""
     cm = confusion_matrix(y_true, y_pred)
@@ -215,7 +208,7 @@ def main():
                     mime="text/csv"
                 )
         except:
-            st.info("ℹ️ Sample test data not available in this directory.")
+            st.info("ℹ️ Sample test data not available.")
         
         st.markdown("---")
         uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
@@ -228,17 +221,13 @@ def main():
                 st.write(f"**Columns:** {list(df.columns)}")
                 
                 # Check if Class column exists
-                has_class = 'Class' in df.columns
+                if 'Class' not in df.columns:
+                    st.error("⚠️ 'Class' column not found in the uploaded file.")
+                    return
                 
-                if not has_class:
-                    st.warning("⚠️ 'Class' column not found. Showing prediction mode instead of evaluation.")
-                    # Predict mode
-                    X = df
-                    y = None
-                else:
-                    # Evaluation mode
-                    X = df.drop('Class', axis=1)
-                    y = df['Class']
+                # Separate features and target
+                X = df.drop('Class', axis=1)
+                y = df['Class']
                 
                 # Scale features
                 if scaler:
@@ -263,10 +252,6 @@ def main():
                 
                 # Evaluate models
                 if st.button("🚀 Evaluate Selected Models", key="eval_button"):
-                    if y is None:
-                        st.error("⚠️ Cannot evaluate without 'Class' column. Please upload data with Class labels.")
-                        return
-                    
                     results = {}
                     
                     # Create progress bar
@@ -405,24 +390,6 @@ def main():
         3. **Precision matters too** - Too many false positives are costly
         4. **AUC is a good metric** for imbalanced data
         5. **Feature scaling** is essential for distance-based models (KNN)
-        
-        ### Project Structure
-        
-        ```
-        project-folder/
-        ├── app.py              # Streamlit application
-        ├── ml_fraud_detection.py    # ML pipeline script
-        ├── requirements.txt    # Dependencies
-        ├── README.md           # Documentation
-        └── model/              # Saved model files
-            ├── logistic_regression_model.pkl
-            ├── decision_tree_model.pkl
-            ├── knn_model.pkl
-            ├── naive_bayes_model.pkl
-            ├── random_forest_model.pkl
-            ├── xgboost_model.pkl
-            └── scaler.pkl
-        ```
         
         ### Technologies Used
         
