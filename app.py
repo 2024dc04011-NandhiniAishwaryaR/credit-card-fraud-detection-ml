@@ -216,16 +216,10 @@ def main():
                     st.error(f"⚠️ Expected 30 features, but got {len(X.columns)}. Please check your data.")
                     return
                 
-                # Scale features as-is (no reordering needed)
-                if scaler:
-                    try:
-                        X_scaled = scaler.transform(X)
-                    except Exception as e:
-                        st.error(f"⚠️ Error scaling data: {str(e)}")
-                        return
-                else:
-                    st.error("Scaler not loaded!")
-                    return
+                # Scale features using StandardScaler (dynamic scaling)
+                from sklearn.preprocessing import StandardScaler
+                scaler_temp = StandardScaler()
+                X_scaled = scaler_temp.fit_transform(X)
                 
                 st.success(f"✅ Data loaded successfully! Test samples: {len(X)}")
                 
