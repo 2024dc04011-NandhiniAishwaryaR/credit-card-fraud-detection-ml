@@ -520,19 +520,4 @@ The interactive Streamlit web application provides a user-friendly interface for
 
 **Recommendation**: Deploy XGBoost model in production for maximum fraud detection effectiveness while maintaining acceptable false positive rates for customer experience.
 
----
 
-## Author
-M.Tech AIML / DSE Student  
-BITS Pilani, Hyderabad Campus  
-Academic Year: 2025-2026
-
-## Assignment Details
-- **Course**: Machine Learning (ML)
-- **Assignment**: Assignment-2 (15 Marks)
-- **Deadline**: 15-Feb-2026
-- **Submission**: GitHub + Streamlit Cloud + BITS Lab Screenshot
-
----
-
-**Last Updated**: January 28, 2026
